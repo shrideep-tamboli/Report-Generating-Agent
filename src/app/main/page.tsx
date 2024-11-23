@@ -13,6 +13,7 @@ export default function ChatInterface() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   const [inputText, setInputText] = useState('');
+  const [showWarning, setShowWarning] = useState(false); // State to control warning visibility
   const { files, setFiles } = useFileContext(); // Access uploaded files and set them
 
   const fileInputRef = useRef<HTMLInputElement>(null); // Ref for the file input
@@ -28,11 +29,16 @@ export default function ChatInterface() {
 
   const handleSendMessage = () => {
     if (inputText.trim()) {
+      if (files.length === 0) {
+        setShowWarning(true); // Show the warning if no files are uploaded
+        return;
+      }
+
       setMessages((prevMessages) => [
         ...prevMessages,
         { content: inputText, type: 'user' },
       ]);
-      setInputText('');
+      setInputText(''); // Clear input after sending the message
     }
   };
 
@@ -47,6 +53,7 @@ export default function ChatInterface() {
     if (e.target.files) {
       const selectedFiles = Array.from(e.target.files);
       setFiles((prevFiles: File[]) => [...prevFiles, ...selectedFiles]); // Add files to context state
+      setShowWarning(false); // Hide warning once a file is uploaded
     }
   };
 
@@ -87,6 +94,13 @@ export default function ChatInterface() {
 
         {/* Main chat area */}
         <main className="flex-1 overflow-y-auto p-4">
+          {/* Warning message */}
+          {showWarning && (
+            <div className="bg-red-500 text-white p-2 rounded-md mb-4 text-center">
+              Click on '+' to upload a file in your library.
+            </div>
+          )}
+
           <div className="max-w-3xl mx-auto space-y-8">
             {/* Show "What can I help with?" only when there are no user messages */}
             {messages.length === 0 && (
